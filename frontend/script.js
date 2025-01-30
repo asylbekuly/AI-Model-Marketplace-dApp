@@ -377,10 +377,10 @@ async function withdrawFunds(modelId) {
     const contractBalanceAfter = await provider.getBalance(contract.address);
     console.log("Balance after withdrawal: ", ethers.utils.formatEther(contractBalanceAfter));
 
-    alert("Средства успешно выведены!");
+    alert("Funds have been withdrawn successfully");
   } catch (err) {
-    console.error("Ошибка при выводе средств:", err);
-    alert("Не удалось вывести средства.");
+    console.error("Withdrawal error:", err);
+    alert("Failed to withdraw funds.");
   }
 }
 
