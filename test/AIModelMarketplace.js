@@ -49,15 +49,15 @@ describe("AIModelMarketplace", function () {
             .connect(buyer)
             .purchaseModel(0, { value: ethers.utils.parseEther("1") });
 
-        // Запоминаем баланс владельца до вывода средств
         const initialBalance = await owner.getBalance();
 
-        // Выполняем вывод средств
-        await marketplace.connect(owner).withdrawFunds(0);
+        // Estimate gas for withdrawal and execute it
+        const tx = await marketplace.connect(owner).withdrawFunds(0);
+        const receipt = await tx.wait();
 
-        // Проверяем, что баланс владельца увеличился
         const finalBalance = await owner.getBalance();
         expect(finalBalance).to.be.gt(initialBalance);
+        console.log("Gas used for withdrawFunds:", receipt.gasUsed.toString());
     });
 
     it("should allow users to get model details", async function () {
@@ -73,5 +73,18 @@ describe("AIModelMarketplace", function () {
         expect(modelDetails[1]).to.equal("A test description"); // description
         expect(modelDetails[2]).to.equal(ethers.utils.parseEther("1")); // price
         expect(modelDetails[3]).to.equal(owner.address); // creator
+    });
+
+    it("should reject a purchase with insufficient funds", async function () {
+        await marketplace.listModel(
+            "Test Model",
+            "A test description",
+            ethers.utils.parseEther("1")
+        );
+        
+        // Attempting to buy with insufficient funds
+        await expect(
+            marketplace.connect(buyer).purchaseModel(0, { value: ethers.utils.parseEther("0.5") })
+        ).to.be.revertedWith("Insufficient funds to purchase model");
     });
 });

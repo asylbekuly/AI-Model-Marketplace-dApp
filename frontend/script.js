@@ -385,6 +385,7 @@ async function withdrawFunds(modelId) {
 }
 
 
+
 // Обработчик формы добавления модели
 document.getElementById("model-form").addEventListener("submit", async (event) => {
   event.preventDefault();

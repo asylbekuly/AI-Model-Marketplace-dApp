@@ -92,18 +92,17 @@ contract AIModelMarketplace {
 
     // Функция для вывода средств создателем модели
     function withdrawFunds(uint256 modelId) public {
-        require(modelId < models.length, "Model does not exist");
-        Model storage model = models[modelId];
-        require(model.creator == msg.sender, "Only the creator can withdraw funds");
+    require(modelId < models.length, "Model does not exist");
+    Model storage model = models[modelId];
+    require(model.creator == msg.sender, "Only the creator can withdraw funds");
 
-        uint256 amount = contractBalance; // Получаем баланс контракта
-        require(amount > 0, "No funds available for withdrawal");
+    uint256 amount = address(this).balance; // Получаем баланс контракта
+    require(amount > 0, "No funds available for withdrawal");
 
-        contractBalance = 0; // Сбрасываем баланс после вывода
+    // Сбрасываем баланс контракта
+    (bool success, ) = model.creator.call{value: amount}(""); 
+    require(success, "Transfer failed");
 
-        // Переводим средства создателю
-        model.creator.transfer(amount);
-
-        emit FundsWithdrawn(model.creator, amount);
-    }
+    emit FundsWithdrawn(model.creator, amount);
+}
 }
