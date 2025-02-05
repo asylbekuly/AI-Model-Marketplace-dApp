@@ -53,8 +53,6 @@ npx hardhat run scripts/deploy.js --network ganache
 
 ## 🗒 Usage Examples
 
-
-
 ## 📷 Screenshots
 
 Here are the key screenshots of the project setup and execution:
@@ -62,16 +60,11 @@ Here are the key screenshots of the project setup and execution:
 1. Clone repository:
    ![Clone Repository](./screenshots/clone_repository.png)
 
-2. Install dependencies:
-   ![Install Dependencies](./screenshots/install_dependencies.png)
 
-3. Run tests:
-   ![Run Tests](./screenshots/runTests.png)
-
-4. Deploy contract:
+2. Deploy contract:
    ![Deploy Contract](./screenshots/deployContract.png)
 
-5. Example usage:
+3. Example usage:
    - Check balance.
    - Perform a transaction.
    - Retrieve transaction details.
