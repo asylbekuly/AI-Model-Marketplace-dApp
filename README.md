@@ -58,7 +58,7 @@ npx hardhat run scripts/deploy.js --network ganache
 Here are the key screenshots of the project setup and execution:
 
 1. Clone repository:
-   ![Clone Repository](./screenshots/clone_repository.png)
+   ![Clone Repository](./screenshots/cloneRepository.png)
 
 
 2. Deploy contract:
