@@ -63,6 +63,8 @@ Here are the key screenshots of the project setup and execution:
 
 2. Deploy contract:
    ![Deploy Contract](./screenshots/deployContract.png)
+2. Check balance:
+   ![Balance ](./screenshots/balance.png)
 
 3. Example usage:
    - Check balance.
