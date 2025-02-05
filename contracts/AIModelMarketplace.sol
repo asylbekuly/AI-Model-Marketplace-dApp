@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 contract AIModelMarketplace {
     struct Model {
         string name;
@@ -11,17 +13,21 @@ contract AIModelMarketplace {
         uint16 totalRating;
     }
 
+    IERC20 public token; // Токен для оплаты
+
     Model[] public models;
     mapping(address => mapping(uint256 => bool)) public purchased;
-
-    // Баланс контракта для хранения средств, полученных от покупок
-    uint256 public contractBalance;
 
     // События для логирования
     event ModelListed(uint256 modelId, string name, uint256 price, address creator);
     event ModelPurchased(uint256 modelId, address buyer);
     event ModelRated(uint256 modelId, uint8 rating, address rater);
     event FundsWithdrawn(address creator, uint256 amount);
+
+    // Инициализация контракта с адресом токена
+    constructor(address _token) {
+        token = IERC20(_token); // Инициализация контракта токена
+    }
 
     // Функция для добавления новой модели
     function listModel(string memory name, string memory description, uint256 price) public {
@@ -30,20 +36,22 @@ contract AIModelMarketplace {
         emit ModelListed(models.length - 1, name, price, msg.sender);
     }
 
-    // Функция для покупки модели
-    function purchaseModel(uint256 modelId) public payable {
-        require(modelId < models.length, "Model does not exist");
-        Model storage model = models[modelId];
-        require(msg.value == model.price, "Incorrect payment amount");
-        require(!purchased[msg.sender][modelId], "Model already purchased");
+    // Функция для покупки модели с использованием токенов
+   function purchaseModel(uint256 modelId) public {
+    require(modelId < models.length, "Model does not exist");
+    Model storage model = models[modelId];
+    require(token.balanceOf(msg.sender) >= model.price, "Insufficient balance");
+    require(!purchased[msg.sender][modelId], "Model already purchased");
 
-        purchased[msg.sender][modelId] = true;
+    purchased[msg.sender][modelId] = true;
 
-        // Средства сохраняются на контракте, а не переводятся сразу создателю
-        contractBalance += msg.value;
+    // Переводим токены от покупателя к создателю модели
+    token.transferFrom(msg.sender, model.creator, model.price);
 
-        emit ModelPurchased(modelId, msg.sender);
-    }
+    emit ModelPurchased(modelId, msg.sender);
+}
+
+
 
     // Функция для оценки модели
     function rateModel(uint256 modelId, uint8 rating) public {
@@ -85,24 +93,14 @@ contract AIModelMarketplace {
         );
     }
 
-    // Функция для получения общего количества моделей
-    function getModelCount() public view returns (uint256) {
-        return models.length;
-    }
-
     // Функция для вывода средств создателем модели
-    function withdrawFunds(uint256 modelId) public {
-    require(modelId < models.length, "Model does not exist");
-    Model storage model = models[modelId];
-    require(model.creator == msg.sender, "Only the creator can withdraw funds");
+    function withdrawFunds() public {
+        uint256 amount = token.balanceOf(address(this)); // Получаем баланс контракта
+        require(amount > 0, "No funds available for withdrawal");
 
-    uint256 amount = address(this).balance; // Получаем баланс контракта
-    require(amount > 0, "No funds available for withdrawal");
+        // Переводим токены на кошелек создателя
+        token.transfer(msg.sender, amount);
 
-    // Сбрасываем баланс контракта
-    (bool success, ) = model.creator.call{value: amount}(""); 
-    require(success, "Transfer failed");
-
-    emit FundsWithdrawn(model.creator, amount);
-}
+        emit FundsWithdrawn(msg.sender, amount);
+    }
 }

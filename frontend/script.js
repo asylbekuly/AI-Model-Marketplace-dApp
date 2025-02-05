@@ -4,7 +4,9 @@ console.log("Ethers.js type:", typeof ethers);
 console.log("Checking if MetaMask is available...");
 console.log("Ethereum object:", window.ethereum);
 
-const contractAddress = "0x514C0430EC2C52A0d1a92678671A5e5B7863c444"; // Вставьте адрес контракта 
+const contractAddress = "0x514C0430EC2C52A0d1a92678671A5e5B7863c444";
+const tokenAddress = "0x824E23428e5C3b2c46360b0A4DAfaCf36A0BdCA2"; 
+
 const abi =[
   {
     "anonymous": false,
@@ -274,7 +276,8 @@ const abi =[
     "type": "function"
   }
 ];
-let contract, provider, signer;
+
+let contract, tokenContract, provider, signer;
 
 // Инициализация провайдера
 window.addEventListener("load", async () => {
@@ -285,6 +288,12 @@ window.addEventListener("load", async () => {
       provider = new ethers.providers.Web3Provider(window.ethereum);
       signer = provider.getSigner();
       contract = new ethers.Contract(contractAddress, abi, signer);
+
+      // Контракт для токенов ERC-20
+      tokenContract = new ethers.Contract(tokenAddress, [
+        "function approve(address spender, uint256 amount) public returns (bool)",
+        "function balanceOf(address account) public view returns (uint256)"
+      ], signer);
 
       console.log("Connected to Ethereum");
       loadModels();
@@ -338,8 +347,6 @@ async function loadModels() {
       `;
       modelsList.appendChild(modelElement);
     }
-    
-
     console.log("Models loaded successfully.");
   } catch (err) {
     console.error("Error loading models:", err);
@@ -359,6 +366,7 @@ async function viewModelDetails(modelId) {
   }
 }
 
+// Функция для вывода средств
 async function withdrawFunds(modelId) {
   try {
     console.log("Attempting to withdraw funds for modelId:", modelId);
@@ -384,8 +392,6 @@ async function withdrawFunds(modelId) {
   }
 }
 
-
-
 // Обработчик формы добавления модели
 document.getElementById("model-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -405,45 +411,63 @@ document.getElementById("model-form").addEventListener("submit", async (event) =
   }
 });
 
-// Функция для покупки модели
+// Функция для покупки модели с использованием токенов ERC-20
+// Функция для покупки модели с использованием токенов ERC-20
 async function buyModel(modelId) {
-    try {
-      const model = await contract.getModelDetails(modelId);
-      const price = model[2]; // Цена модели (в wei)
-  
-      console.log(`Buying model ${modelId} for ${ethers.utils.formatEther(price)} ETH`);
-  
-      const tx = await contract.purchaseModel(modelId, { value: price });
-      await tx.wait();
-  
-      alert("Model purchased successfully!");
-      loadModels(); // Обновляем список после покупки
-    } catch (err) {
-      console.error("Error purchasing model:", err);
-      alert("Failed to purchase model.");
+  try {
+    const model = await contract.getModelDetails(modelId);
+    const price = model[2]; // Цена модели в токенах
+
+    console.log(`Buying model ${modelId} for ${ethers.utils.formatEther(price)} Tokens`);
+
+    // Проверим баланс пользователя
+    const userBalance = await tokenContract.balanceOf(await signer.getAddress());
+    console.log("User's balance: ", ethers.utils.formatEther(userBalance));
+
+    // Если баланса недостаточно, выводим ошибку
+    if (userBalance < price) {
+      alert("Insufficient token balance!");
+      return;
     }
+
+    // Разрешаем контракту тратить токены от имени пользователя
+    const approveTx = await tokenContract.approve(contract.address, price, { gasLimit: 100000 });
+    await approveTx.wait();
+
+    console.log("Approval successful. Proceeding to purchase...");
+
+    // После одобрения, выполняем покупку
+    const purchaseTx = await contract.purchaseModel(modelId, { gasLimit: 300000 });
+    await purchaseTx.wait();
+
+    alert("Model purchased successfully!");
+    loadModels(); 
+  } catch (err) {
+    console.error("Error purchasing model:", err);
+    alert("Failed to purchase model.");
   }
-  
+}
+
+
 
 // Функция для оценки модели
 async function rateModel(modelId) {
-    const rating = prompt("Enter your rating (1 to 5):");
-    if (!rating || rating < 1 || rating > 5) {
-      alert("Invalid rating. Please enter a number between 1 and 5.");
-      return;
-    }
-  
-    try {
-      console.log(`Rating model ${modelId} with rating ${rating}`);
-  
-      const tx = await contract.rateModel(modelId, parseInt(rating));
-      await tx.wait();
-  
-      alert("Model rated successfully!");
-      loadModels(); // Обновляем список после оценки
-    } catch (err) {
-      console.error("Error rating model:", err);
-      alert("Failed to rate model.");
-    }
+  const rating = prompt("Enter your rating (1 to 5):");
+  if (!rating || rating < 1 || rating > 5) {
+    alert("Invalid rating. Please enter a number between 1 and 5.");
+    return;
   }
-  
+
+  try {
+    console.log(`Rating model ${modelId} with rating ${rating}`);
+
+    const tx = await contract.rateModel(modelId, parseInt(rating));
+    await tx.wait();
+
+    alert("Model rated successfully!");
+    loadModels(); // Обновляем список после оценки
+  } catch (err) {
+    console.error("Error rating model:", err);
+    alert("Failed to rate model.");
+  }
+}

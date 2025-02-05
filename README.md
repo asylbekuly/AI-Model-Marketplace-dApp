@@ -1,16 +1,78 @@
-# AI-Model-Marketplace-dApp
+# AstanaItUniversity_SE2314
 
-This project focuses on creating a Decentralized Application (DApp) that enables users to list, purchase, and rate AI models using a smart contract deployed on a blockchain.
+AIModelMarketplace is a smart contract implementing  with additional functionality to retrieve and display transaction details.
 
-## Sample Hardhat Project
+---
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+## 📋 Description
 
-Try running some of the following tasks:
+This smart contract includes the basic functionalities of an ERC-20 token with additional features for transaction handling:
+- **Initialization:** Upon deployment, 2000 tokens are created and assigned to the contract creator.
+- **Transaction Logging:** Every transaction is logged in an event with detailed information.
+- **Transaction Information Retrieval:**
+  - Sender address.
+  - Receiver address.
+  - Timestamp of the last transaction in a readable format.
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.js
+---
+
+## 🔧 Setup
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/your-repository.git
+cd your-repository
+```
+
+
+
+---
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+
+
+---
+
+### Deploy to Local Network
+
+Run a local blockchain (e.g., Ganache), then deploy the contract:
+
+```bash
+npx hardhat run scripts/deploy.js --network ganache
+```
+
+![Deploy Contract](./screenshots/deployContract.png)
+
+---
+
+## 🗒 Usage Examples
+
+
+
+## 📷 Screenshots
+
+Here are the key screenshots of the project setup and execution:
+
+1. Clone repository:
+   ![Clone Repository](./screenshots/clone_repository.png)
+
+2. Install dependencies:
+   ![Install Dependencies](./screenshots/install_dependencies.png)
+
+3. Run tests:
+   ![Run Tests](./screenshots/runTests.png)
+
+4. Deploy contract:
+   ![Deploy Contract](./screenshots/deployContract.png)
+
+5. Example usage:
+   - Check balance.
+   - Perform a transaction.
+   - Retrieve transaction details.
+
